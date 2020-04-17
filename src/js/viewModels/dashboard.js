@@ -8,12 +8,12 @@
  * Your dashboard ViewModel code goes here
  */
 define(['knockout', 'accUtils', 'text!./employeeData.json', 'text!./endpoints.json', 'jquery', 'ojs/ojarraydataprovider',
-    'ojs/ojknockout', 'ojs/ojtable', 'ojs/ojdatagrid', 'ojs/ojcollectiondatagriddatasource','ojs/ojinputtext', 'ojs/ojformlayout'],
+    'ojs/ojknockout', 'ojs/ojtable', 'ojs/ojdatagrid', 'ojs/ojcollectiondatagriddatasource', 'ojs/ojinputtext', 'ojs/ojformlayout'],
         function (ko, accUtils, localdata, endpoints, $, ArrayDataProvider) {
 
-            function DashboardViewModel() {
-                var self = this;
+            var self = this;
 
+            function DashboardViewModel() {
 
                 self.url = JSON.parse(endpoints).employees
 
@@ -31,9 +31,28 @@ define(['knockout', 'accUtils', 'text!./employeeData.json', 'text!./endpoints.js
                         });
 
 
-                self.dataprovider = new ArrayDataProvider(JSON.parse(localdata), {keyAttributes: 'DepartmentId', implicitSort: [{attribute: 'DepartmentId', direction: 'ascending'}]});
 
+                self.empTable = ko.observableArray();
+                self.dataprovider = new ArrayDataProvider(self.empTable, {keyAttributes: 'DepartmentId'});
 
+                let newTableData = [];
+
+                self.empTable([]);//reset the details table
+
+                $.getJSON(self.url, function (data) {
+                    $.each(data, function (key, val) {
+                        console.log("INFO: val.DEPARTMENT_ID: " + val.DEPARTMENT_ID);
+
+                        newTableData.push({
+                            DEPARTMENT_ID: val.DEPARTMENT_ID,
+                            FIRST_NAME: val.FIRST_NAME,
+                            LAST_NAME: val.LAST_NAME,
+                            SALARY: val.SALARY
+                        });
+
+                    });
+                    self.empTable(newTableData);
+                });
 
                 var nextKey = 121;
                 self.inputEmployeeID = ko.observable(nextKey);
@@ -44,31 +63,31 @@ define(['knockout', 'accUtils', 'text!./employeeData.json', 'text!./endpoints.js
 
                 //build a new model from the observables in the form
                 self.buildModel = function () {
-                   return {
-                     'id': self.inputEmployeeID(),
-                     'FIRST_NAME': self.inputFirstName(),
-                     'LAST_NAME': self.inputLastName(),
-                     'HIRE_DATE': self.inputHireDate(),
-                     'SALARY': self.inputSalary()
-                   };
+                    return {
+                        'id': self.inputEmployeeID(),
+                        'FIRST_NAME': self.inputFirstName(),
+                        'LAST_NAME': self.inputLastName(),
+                        'HIRE_DATE': self.inputHireDate(),
+                        'SALARY': self.inputSalary()
+                    };
                 };
-                
-                
+
+
                 //used to update the fields based on the selected row:
                 self.updateFields = function (model) {
-                   self.inputEmployeeID(model.get('id'));
-                   self.inputFirstName(model.get('FIRST_NAME'));
-                   self.inputLastName(model.get('LAST_NAME'));
-                   self.inputHireDate(model.get('HIRE_DATE'));
-                   self.inputSalary(model.get('SALARY'));
+                    self.inputEmployeeID(model.get('id'));
+                    self.inputFirstName(model.get('FIRST_NAME'));
+                    self.inputLastName(model.get('LAST_NAME'));
+                    self.inputHireDate(model.get('HIRE_DATE'));
+                    self.inputSalary(model.get('SALARY'));
                 };
                 self.handleSelectionChanged = function (event) {
-                 var selection = event.detail['value'][0];
-                 if (selection != null) { 
-                     var rowKey = selection['startKey']['row'];
-                     self.modelToUpdate = self.collection.get(rowKey);
-                     self.updateFields(self.modelToUpdate);
-                 }
+                    var selection = event.detail['value'][0];
+                    if (selection != null) {
+                        var rowKey = selection['startKey']['row'];
+                        self.modelToUpdate = self.collection.get(rowKey);
+                        self.updateFields(self.modelToUpdate);
+                    }
                 };
 
 
