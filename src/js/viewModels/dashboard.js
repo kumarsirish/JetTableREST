@@ -7,9 +7,9 @@
 /*
  * Your dashboard ViewModel code goes here
  */
-define(['knockout', 'accUtils', 'text!./employeeData.json', 'text!./endpoints.json', 'jquery', 'ojs/ojarraydataprovider',
-    'ojs/ojknockout', 'ojs/ojtable', 'ojs/ojdatagrid', 'ojs/ojcollectiondatagriddatasource', 'ojs/ojinputtext', 'ojs/ojformlayout'],
-        function (ko, accUtils, localdata, endpoints, $, ArrayDataProvider) {
+define(['knockout', 'accUtils','text!./endpoints.json', 'jquery', 'ojs/ojarraydataprovider','ojs/ojknockout-keyset',
+    'ojs/ojknockout', 'ojs/ojtable'],
+        function (ko, accUtils, endpoints, $, ArrayDataProvider, keySet) {
 
             var self = this;
 
@@ -17,80 +17,44 @@ define(['knockout', 'accUtils', 'text!./employeeData.json', 'text!./endpoints.js
 
                 self.url = JSON.parse(endpoints).employees
 
-                self.collection = new oj.Collection(null, {
-                    model: new oj.Model.extend({
-                        idAttribute: 'id',
-                        urlRoot: self.url}),
-                    url: self.url
-                });
-
-                self.dataSource = new oj.CollectionDataGridDataSource(
-                        self.collection, {
-                            rowHeader: 'id',
-                            columns: ['FIRST_NAME', 'LAST_NAME', 'HIRE_DATE', 'SALARY']
-                        });
-
-
-
                 self.empTable = ko.observableArray();
-                self.dataprovider = new ArrayDataProvider(self.empTable, {keyAttributes: 'DepartmentId'});
-
+                self.dataprovider = new ArrayDataProvider(self.empTable, {keyAttributes: '@index'});  //@index indeicates the index number or row number of the table. You can replace it by 'id' or any other table key
                 let newTableData = [];
-
                 self.empTable([]);//reset the details table
 
                 $.getJSON(self.url, function (data) {
                     $.each(data, function (key, val) {
-                        console.log("INFO: val.DEPARTMENT_ID: " + val.DEPARTMENT_ID);
+                        console.log("INFO: key: "+key+"val.DEPARTMENT_ID: " + val.DEPARTMENT_ID);
 
                         newTableData.push({
+                            id: val.id,
                             DEPARTMENT_ID: val.DEPARTMENT_ID,
                             FIRST_NAME: val.FIRST_NAME,
                             LAST_NAME: val.LAST_NAME,
-                            SALARY: val.SALARY
+                            SALARY: val.SALARY,
+                            IMAGE: val.Image
                         });
 
                     });
                     self.empTable(newTableData);
                 });
-
-                var nextKey = 121;
-                self.inputEmployeeID = ko.observable(nextKey);
-                self.inputFirstName = ko.observable();
-                self.inputLastName = ko.observable();
-                self.inputHireDate = ko.observable();
-                self.inputSalary = ko.observable();
-
-                //build a new model from the observables in the form
-                self.buildModel = function () {
-                    return {
-                        'id': self.inputEmployeeID(),
-                        'FIRST_NAME': self.inputFirstName(),
-                        'LAST_NAME': self.inputLastName(),
-                        'HIRE_DATE': self.inputHireDate(),
-                        'SALARY': self.inputSalary()
-                    };
-                };
-
-
-                //used to update the fields based on the selected row:
-                self.updateFields = function (model) {
-                    self.inputEmployeeID(model.get('id'));
-                    self.inputFirstName(model.get('FIRST_NAME'));
-                    self.inputLastName(model.get('LAST_NAME'));
-                    self.inputHireDate(model.get('HIRE_DATE'));
-                    self.inputSalary(model.get('SALARY'));
-                };
-                self.handleSelectionChanged = function (event) {
-                    var selection = event.detail['value'][0];
-                    if (selection != null) {
-                        var rowKey = selection['startKey']['row'];
-                        self.modelToUpdate = self.collection.get(rowKey);
-                        self.updateFields(self.modelToUpdate);
+                
+                self.selectedRows = new keySet.ObservableKeySet();
+                self.selectedChangedListener = function (event) {
+                    document.getElementById('selectedInfo').value = '';
+                    var selectionText = '';
+                    var selectedRowIndex;
+                
+                    if (event.detail.value.row.values().size > 0) {
+                            event.detail.value.row.values().forEach(function (key) { //same "key" which is defined as keyAttributes in adata povider above
+                            console.log("Row number: "+Number(key)+" Details : "); console.log(self.empTable()[key]);
+                            selectedRowIndex = Number(key); //key=row number here
+                            selectionText += selectionText + "First name: "+ self.empTable()[selectedRowIndex].FIRST_NAME + "\n" ;
+                        });
                     }
+                        document.getElementById('selectedInfo').value = selectionText;
                 };
-
-
+    
 
                 // Below are a set of the ViewModel methods invoked by the oj-module component.
                 // Please reference the oj-module jsDoc for additional information.
