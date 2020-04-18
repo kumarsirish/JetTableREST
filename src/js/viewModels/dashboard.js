@@ -7,9 +7,9 @@
 /*
  * Your dashboard ViewModel code goes here
  */
-define(['knockout', 'accUtils','text!./endpoints.json', 'jquery', 'ojs/ojarraydataprovider','ojs/ojknockout-keyset',
+define(['knockout', 'accUtils','text!./endpoints.json', 'jquery', 'ojs/ojarraydataprovider','ojs/ojknockout-keyset','ojs/ojknockouttemplateutils',
     'ojs/ojknockout', 'ojs/ojtable'],
-        function (ko, accUtils, endpoints, $, ArrayDataProvider, keySet) {
+        function (ko, accUtils, endpoints, $, ArrayDataProvider, keySet, KnockoutTemplateUtils) {
 
             var self = this;
 
@@ -28,17 +28,34 @@ define(['knockout', 'accUtils','text!./endpoints.json', 'jquery', 'ojs/ojarrayda
 
                         newTableData.push({
                             id: val.id,
+                            IMAGE: val.Image,
                             DEPARTMENT_ID: val.DEPARTMENT_ID,
                             FIRST_NAME: val.FIRST_NAME,
                             LAST_NAME: val.LAST_NAME,
-                            SALARY: val.SALARY,
-                            IMAGE: val.Image
+                            SALARY: val.SALARY
+                           
                         });
 
                     });
                     self.empTable(newTableData);
                 });
                 
+                
+                self.columnArray = [
+
+                    {
+                        headerText: 'Employee Photo',
+                        renderer: KnockoutTemplateUtils.getRenderer('emp_photo', true),
+                        sortable: 'disabled'
+                    },
+                    {
+                        headerText: 'Employee Name',
+                        sortable: 'enabled',
+                        renderer: KnockoutTemplateUtils.getRenderer('emp_name', true),
+                        sortProperty: 'FirstName'
+                    }
+                ];
+            
                 self.selectedRows = new keySet.ObservableKeySet();
                 self.selectedChangedListener = function (event) {
                     document.getElementById('selectedInfo').value = '';

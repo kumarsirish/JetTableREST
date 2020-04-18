@@ -8,47 +8,29 @@
          <oj-table id='table' aria-label='Departments Table'
                    data='[[dataprovider]]'
                      selected.row='{{selectedRows}}'
+                     
                       selection-mode='{"row": "multiple"}'
                       scroll-policy='loadMoreOnScroll'
                       scroll-policy-options='{"fetchSize": 10}'
                       on-selected-changed='{{selectedChangedListener}}'
-                   columns='[
-                   {
-                   "headerText": "Id", 
-                   "field": "id",
-                   "resizable": "enabled"
-                   },
-                   {
-                   "headerText": "Department Id", 
-                   "field": "DEPARTMENT_ID",
-                   "resizable": "enabled"
-                   },
-                   {
-                   "headerText": "First Name", 
-                   "field": "FIRST_NAME",
-                   "resizable": "enabled"
-                   },
-                   { 
-                   "headerText": "Last Name", 
-                   "field": "LAST_NAME",
-                   "resizable": "enabled"
-                   },
-                   {
-                   "headerText": "Salary", 
-                   "field": "SALARY",
-                   "resizable": "enabled"
-                   },
-                   {
-                   "headerText": "Image", 
-                   "field" : "IMAGE"
-                   
-                   }
-                   ]'
-                   style='width: 100%; height: 400px;'>
+                      columns='{{columnArray}}'
+                      style='width: 100%; height: 400px;'>
+             
          </oj-table>
-        
-
          
+         
+         <script type="text/html" id="emp_photo">
+               <td>
+               <!-- <span class="avatar" data-bind="attr: {style: 'background-image: url($context.row.IMAGE)'}"></span> -->
+               <img data-bind="attr: {src: $context.row.IMAGE}"></span>
+               </td>
+          </script>
+          <script type="text/html" id="emp_name">
+               <td data-bind="text: $context.row.FIRST_NAME + ' ' + $context.row.LAST_NAME">
+               </td>
+          </script>
+          
+          
          <br>
          <label for="selectedInfo">Current Selection:</label>
          <br>
